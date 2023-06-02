@@ -1,0 +1,63 @@
+query GetResourceProvider($id: ID!) {
+    resourceProvider(id: $id) {
+        id
+        name
+        description
+        organizationalUnit{
+            id
+        }
+        createdAt
+        updatedAt
+    }
+}
+
+query ListResourceProviders($id:ID!, $orderBy: ResourceProviderOrder){
+    _entities(representations: [{__typename: "OrganizationalUnit", id: $id}]) {
+        ... on OrganizationalUnit {
+            resourceProvider(orderBy: $orderBy) {
+                edges {
+                    node {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+    }
+}
+
+mutation ResourceProviderCreate($input: CreateResourceProviderInput!) {
+    resourceProviderCreate(input: $input) {
+        resourceProvider {
+            id
+            name
+            description
+            organizationalUnit{
+                id
+            }
+            createdAt
+            updatedAt
+        }
+    }
+}
+
+mutation ResourceProviderUpdate($id: ID!,$input: UpdateResourceProviderInput!) {
+    resourceProviderUpdate(id: $id input: $input) {
+        resourceProvider {
+            id
+            name
+            description
+            organizationalUnit{
+                id
+            }
+            createdAt
+            updatedAt
+        }
+    }
+}
+
+mutation ResourceProviderDelete($id: ID!){
+    resourceProviderDelete(id: $id){
+        deletedID
+    }
+}

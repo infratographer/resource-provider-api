@@ -1,0 +1,61 @@
+extend type Query {
+  """
+  Lookup a resource provider by ID.
+  """
+  resourceProvider(
+    """
+    The resource provider ID.
+    """
+    id: ID!
+  ): ResourceProvider!
+}
+
+extend type Mutation {
+  """
+  Create a resource provider.
+  """
+  resourceProviderCreate(
+    input: CreateResourceProviderInput!
+  ): ResourceProviderCreatePayload!
+  """
+  Update a resource provider.
+  """
+  resourceProviderUpdate(
+    id: ID!
+    input: UpdateResourceProviderInput!
+  ): ResourceProviderUpdatePayload!
+  """
+  Delete a resource provider.
+  """
+  resourceProviderDelete(id: ID!): ResourceProviderDeletePayload!
+}
+
+"""
+Return response from resourceProviderCreate
+"""
+type ResourceProviderCreatePayload {
+  """
+  The created resource provider.
+  """
+  resourceProvider: ResourceProvider!
+}
+
+"""
+Return response from resourceProviderDelete
+"""
+type ResourceProviderDeletePayload {
+  """
+  The ID of the deleted resource provider.
+  """
+  deletedID: ID!
+}
+
+"""
+Return response from resourceProviderUpdate
+"""
+type ResourceProviderUpdatePayload {
+  """
+  The updated resource provider.
+  """
+  resourceProvider: ResourceProvider!
+}
