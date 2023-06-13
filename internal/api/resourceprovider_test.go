@@ -71,7 +71,7 @@ func TestQuery_resourceProvider(t *testing.T) {
 				assert.Equal(t, tc.expextedResourceProvider.Description, *resp.ResourceProvider.Description)
 			}
 			if tc.hasOwnerID {
-				assert.Equal(t, tc.expextedResourceProvider.OwnerID, *&resp.ResourceProvider.Owner.ID)
+				assert.Equal(t, tc.expextedResourceProvider.OwnerID, resp.ResourceProvider.Owner.ID)
 			}
 		})
 	}
