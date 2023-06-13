@@ -26,8 +26,8 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldOrganizationalUnitID holds the string denoting the organizational_unit_id field in the database.
-	FieldOrganizationalUnitID = "organizational_unit_id"
+	// FieldOwnerID holds the string denoting the owner_id field in the database.
+	FieldOwnerID = "owner_id"
 	// Table holds the table name of the resourceprovider in the database.
 	Table = "resource_providers"
 )
@@ -39,7 +39,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldName,
 	FieldDescription,
-	FieldOrganizationalUnitID,
+	FieldOwnerID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -93,7 +93,7 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByOrganizationalUnitID orders the results by the organizational_unit_id field.
-func ByOrganizationalUnitID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOrganizationalUnitID, opts...).ToFunc()
+// ByOwnerID orders the results by the owner_id field.
+func ByOwnerID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOwnerID, opts...).ToFunc()
 }

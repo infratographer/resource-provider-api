@@ -29,16 +29,16 @@ type CreateResourceProviderInput struct {
 	Name string `json:"name"`
 	// The description of the resource provider.
 	Description *string `json:"description,omitempty"`
-	// The ID for the organizational unit for this resource provider.
-	OrganizationalUnitID gidx.PrefixedID `json:"organizationalUnitID"`
+	// The ID for the owner for this resource provider.
+	OwnerID gidx.PrefixedID `json:"ownerID"`
 }
 
-type OrganizationalUnit struct {
+type Owner struct {
 	ID               gidx.PrefixedID            `json:"id"`
 	ResourceProvider ResourceProviderConnection `json:"resourceProvider"`
 }
 
-func (OrganizationalUnit) IsEntity() {}
+func (Owner) IsEntity() {}
 
 // Information about pagination in a connection.
 // https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
@@ -62,8 +62,8 @@ type ResourceProvider struct {
 	Name string `json:"name"`
 	// The description of the resource provider.
 	Description *string `json:"description,omitempty"`
-	// The organizationalUnit of the resourceProvider.
-	OrganizationalUnit OrganizationalUnit `json:"organizationalUnit"`
+	// The owner of the resourceProvider.
+	Owner Owner `json:"owner"`
 }
 
 func (ResourceProvider) IsNode() {}

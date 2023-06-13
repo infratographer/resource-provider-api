@@ -73,9 +73,9 @@ func (rpc *ResourceProviderCreate) SetNillableDescription(s *string) *ResourcePr
 	return rpc
 }
 
-// SetOrganizationalUnitID sets the "organizational_unit_id" field.
-func (rpc *ResourceProviderCreate) SetOrganizationalUnitID(gi gidx.PrefixedID) *ResourceProviderCreate {
-	rpc.mutation.SetOrganizationalUnitID(gi)
+// SetOwnerID sets the "owner_id" field.
+func (rpc *ResourceProviderCreate) SetOwnerID(gi gidx.PrefixedID) *ResourceProviderCreate {
+	rpc.mutation.SetOwnerID(gi)
 	return rpc
 }
 
@@ -158,8 +158,8 @@ func (rpc *ResourceProviderCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`generated: validator failed for field "ResourceProvider.name": %w`, err)}
 		}
 	}
-	if _, ok := rpc.mutation.OrganizationalUnitID(); !ok {
-		return &ValidationError{Name: "organizational_unit_id", err: errors.New(`generated: missing required field "ResourceProvider.organizational_unit_id"`)}
+	if _, ok := rpc.mutation.OwnerID(); !ok {
+		return &ValidationError{Name: "owner_id", err: errors.New(`generated: missing required field "ResourceProvider.owner_id"`)}
 	}
 	return nil
 }
@@ -212,9 +212,9 @@ func (rpc *ResourceProviderCreate) createSpec() (*ResourceProvider, *sqlgraph.Cr
 		_spec.SetField(resourceprovider.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := rpc.mutation.OrganizationalUnitID(); ok {
-		_spec.SetField(resourceprovider.FieldOrganizationalUnitID, field.TypeString, value)
-		_node.OrganizationalUnitID = value
+	if value, ok := rpc.mutation.OwnerID(); ok {
+		_spec.SetField(resourceprovider.FieldOwnerID, field.TypeString, value)
+		_node.OwnerID = value
 	}
 	return _node, _spec
 }

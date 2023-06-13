@@ -31,9 +31,9 @@ type ResourceProvider struct {
 	Name string `json:"name,omitempty"`
 	// The description of the resource provider.
 	Description string `json:"description,omitempty"`
-	// The ID for the organizational unit for this resource provider.
-	OrganizationalUnitID gidx.PrefixedID `json:"organizational_unit_id,omitempty"`
-	selectValues         sql.SelectValues
+	// The ID for the owner for this resource provider.
+	OwnerID      gidx.PrefixedID `json:"owner_id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -41,7 +41,7 @@ func (*ResourceProvider) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourceprovider.FieldID, resourceprovider.FieldOrganizationalUnitID:
+		case resourceprovider.FieldID, resourceprovider.FieldOwnerID:
 			values[i] = new(gidx.PrefixedID)
 		case resourceprovider.FieldName, resourceprovider.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -92,11 +92,11 @@ func (rp *ResourceProvider) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rp.Description = value.String
 			}
-		case resourceprovider.FieldOrganizationalUnitID:
+		case resourceprovider.FieldOwnerID:
 			if value, ok := values[i].(*gidx.PrefixedID); !ok {
-				return fmt.Errorf("unexpected type %T for field organizational_unit_id", values[i])
+				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
 			} else if value != nil {
-				rp.OrganizationalUnitID = *value
+				rp.OwnerID = *value
 			}
 		default:
 			rp.selectValues.Set(columns[i], values[i])
@@ -146,8 +146,8 @@ func (rp *ResourceProvider) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(rp.Description)
 	builder.WriteString(", ")
-	builder.WriteString("organizational_unit_id=")
-	builder.WriteString(fmt.Sprintf("%v", rp.OrganizationalUnitID))
+	builder.WriteString("owner_id=")
+	builder.WriteString(fmt.Sprintf("%v", rp.OwnerID))
 	builder.WriteByte(')')
 	return builder.String()
 }

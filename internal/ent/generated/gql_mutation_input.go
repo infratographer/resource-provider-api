@@ -12,9 +12,9 @@ import (
 
 // CreateResourceProviderInput represents a mutation input for creating resourceproviders.
 type CreateResourceProviderInput struct {
-	Name                 string
-	Description          *string
-	OrganizationalUnitID gidx.PrefixedID
+	Name        string
+	Description *string
+	OwnerID     gidx.PrefixedID
 }
 
 // Mutate applies the CreateResourceProviderInput on the ResourceProviderMutation builder.
@@ -23,7 +23,7 @@ func (i *CreateResourceProviderInput) Mutate(m *ResourceProviderMutation) {
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
 	}
-	m.SetOrganizationalUnitID(i.OrganizationalUnitID)
+	m.SetOwnerID(i.OwnerID)
 }
 
 // SetInput applies the change-set in the CreateResourceProviderInput on the ResourceProviderCreate builder.

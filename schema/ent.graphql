@@ -6,8 +6,8 @@ input CreateResourceProviderInput {
   name: String!
   """The description of the resource provider."""
   description: String
-  """The ID for the organizational unit for this resource provider."""
-  organizationalUnitID: ID!
+  """The ID for the owner for this resource provider."""
+  ownerID: ID!
 }
 """
 Define a Relay Cursor type:

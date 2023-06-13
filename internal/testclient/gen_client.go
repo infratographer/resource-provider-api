@@ -39,12 +39,12 @@ type Mutation struct {
 }
 type GetResourceProvider struct {
 	ResourceProvider struct {
-		ID                 gidx.PrefixedID "json:\"id\" graphql:\"id\""
-		Name               string          "json:\"name\" graphql:\"name\""
-		Description        *string         "json:\"description\" graphql:\"description\""
-		OrganizationalUnit struct {
+		ID          gidx.PrefixedID "json:\"id\" graphql:\"id\""
+		Name        string          "json:\"name\" graphql:\"name\""
+		Description *string         "json:\"description\" graphql:\"description\""
+		Owner       struct {
 			ID gidx.PrefixedID "json:\"id\" graphql:\"id\""
-		} "json:\"organizationalUnit\" graphql:\"organizationalUnit\""
+		} "json:\"owner\" graphql:\"owner\""
 		CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 		UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
 	} "json:\"resourceProvider\" graphql:\"resourceProvider\""
@@ -64,12 +64,12 @@ type ListResourceProviders struct {
 type ResourceProviderCreate struct {
 	ResourceProviderCreate struct {
 		ResourceProvider struct {
-			ID                 gidx.PrefixedID "json:\"id\" graphql:\"id\""
-			Name               string          "json:\"name\" graphql:\"name\""
-			Description        *string         "json:\"description\" graphql:\"description\""
-			OrganizationalUnit struct {
+			ID          gidx.PrefixedID "json:\"id\" graphql:\"id\""
+			Name        string          "json:\"name\" graphql:\"name\""
+			Description *string         "json:\"description\" graphql:\"description\""
+			Owner       struct {
 				ID gidx.PrefixedID "json:\"id\" graphql:\"id\""
-			} "json:\"organizationalUnit\" graphql:\"organizationalUnit\""
+			} "json:\"owner\" graphql:\"owner\""
 			CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 			UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
 		} "json:\"resourceProvider\" graphql:\"resourceProvider\""
@@ -83,12 +83,12 @@ type ResourceProviderDelete struct {
 type ResourceProviderUpdate struct {
 	ResourceProviderUpdate struct {
 		ResourceProvider struct {
-			ID                 gidx.PrefixedID "json:\"id\" graphql:\"id\""
-			Name               string          "json:\"name\" graphql:\"name\""
-			Description        *string         "json:\"description\" graphql:\"description\""
-			OrganizationalUnit struct {
+			ID          gidx.PrefixedID "json:\"id\" graphql:\"id\""
+			Name        string          "json:\"name\" graphql:\"name\""
+			Description *string         "json:\"description\" graphql:\"description\""
+			Owner       struct {
 				ID gidx.PrefixedID "json:\"id\" graphql:\"id\""
-			} "json:\"organizationalUnit\" graphql:\"organizationalUnit\""
+			} "json:\"owner\" graphql:\"owner\""
 			CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 			UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
 		} "json:\"resourceProvider\" graphql:\"resourceProvider\""
@@ -100,7 +100,7 @@ const GetResourceProviderDocument = `query GetResourceProvider ($id: ID!) {
 		id
 		name
 		description
-		organizationalUnit {
+		owner {
 			id
 		}
 		createdAt
@@ -123,8 +123,8 @@ func (c *Client) GetResourceProvider(ctx context.Context, id gidx.PrefixedID, ht
 }
 
 const ListResourceProvidersDocument = `query ListResourceProviders ($id: ID!, $orderBy: ResourceProviderOrder) {
-	_entities(representations: [{__typename:"OrganizationalUnit",id:$id}]) {
-		... on OrganizationalUnit {
+	_entities(representations: [{__typename:"Owner",id:$id}]) {
+		... on Owner {
 			resourceProvider(orderBy: $orderBy) {
 				edges {
 					node {
@@ -158,7 +158,7 @@ const ResourceProviderCreateDocument = `mutation ResourceProviderCreate ($input:
 			id
 			name
 			description
-			organizationalUnit {
+			owner {
 				id
 			}
 			createdAt
@@ -207,7 +207,7 @@ const ResourceProviderUpdateDocument = `mutation ResourceProviderUpdate ($id: ID
 			id
 			name
 			description
-			organizationalUnit {
+			owner {
 				id
 			}
 			createdAt

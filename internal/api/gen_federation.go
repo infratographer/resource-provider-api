@@ -80,21 +80,21 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 		}()
 
 		switch typeName {
-		case "OrganizationalUnit":
-			resolverName, err := entityResolverNameForOrganizationalUnit(ctx, rep)
+		case "Owner":
+			resolverName, err := entityResolverNameForOwner(ctx, rep)
 			if err != nil {
-				return fmt.Errorf(`finding resolver for Entity "OrganizationalUnit": %w`, err)
+				return fmt.Errorf(`finding resolver for Entity "Owner": %w`, err)
 			}
 			switch resolverName {
 
-			case "findOrganizationalUnitByID":
+			case "findOwnerByID":
 				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["id"])
 				if err != nil {
-					return fmt.Errorf(`unmarshalling param 0 for findOrganizationalUnitByID(): %w`, err)
+					return fmt.Errorf(`unmarshalling param 0 for findOwnerByID(): %w`, err)
 				}
-				entity, err := ec.resolvers.Entity().FindOrganizationalUnitByID(ctx, id0)
+				entity, err := ec.resolvers.Entity().FindOwnerByID(ctx, id0)
 				if err != nil {
-					return fmt.Errorf(`resolving Entity "OrganizationalUnit": %w`, err)
+					return fmt.Errorf(`resolving Entity "Owner": %w`, err)
 				}
 
 				list[idx[i]] = entity
@@ -189,7 +189,7 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 	}
 }
 
-func entityResolverNameForOrganizationalUnit(ctx context.Context, rep map[string]interface{}) (string, error) {
+func entityResolverNameForOwner(ctx context.Context, rep map[string]interface{}) (string, error) {
 	for {
 		var (
 			m   map[string]interface{}
@@ -201,9 +201,9 @@ func entityResolverNameForOrganizationalUnit(ctx context.Context, rep map[string
 		if _, ok = m["id"]; !ok {
 			break
 		}
-		return "findOrganizationalUnitByID", nil
+		return "findOwnerByID", nil
 	}
-	return "", fmt.Errorf("%w for OrganizationalUnit", ErrTypeNotFound)
+	return "", fmt.Errorf("%w for Owner", ErrTypeNotFound)
 }
 
 func entityResolverNameForResourceProvider(ctx context.Context, rep map[string]interface{}) (string, error) {

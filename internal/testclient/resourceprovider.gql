@@ -3,7 +3,7 @@ query GetResourceProvider($id: ID!) {
         id
         name
         description
-        organizationalUnit{
+        owner{
             id
         }
         createdAt
@@ -12,8 +12,8 @@ query GetResourceProvider($id: ID!) {
 }
 
 query ListResourceProviders($id:ID!, $orderBy: ResourceProviderOrder){
-    _entities(representations: [{__typename: "OrganizationalUnit", id: $id}]) {
-        ... on OrganizationalUnit {
+    _entities(representations: [{__typename: "Owner", id: $id}]) {
+        ... on Owner {
             resourceProvider(orderBy: $orderBy) {
                 edges {
                     node {
@@ -32,7 +32,7 @@ mutation ResourceProviderCreate($input: CreateResourceProviderInput!) {
             id
             name
             description
-            organizationalUnit{
+            owner{
                 id
             }
             createdAt
@@ -47,7 +47,7 @@ mutation ResourceProviderUpdate($id: ID!,$input: UpdateResourceProviderInput!) {
             id
             name
             description
-            organizationalUnit{
+            owner{
                 id
             }
             createdAt

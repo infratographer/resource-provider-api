@@ -19,7 +19,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Size: 2147483647},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "organizational_unit_id", Type: field.TypeString},
+		{Name: "owner_id", Type: field.TypeString},
 	}
 	// ResourceProvidersTable holds the schema information for the "resource_providers" table.
 	ResourceProvidersTable = &schema.Table{
@@ -38,7 +38,7 @@ var (
 				Columns: []*schema.Column{ResourceProvidersColumns[2]},
 			},
 			{
-				Name:    "resourceprovider_organizational_unit_id",
+				Name:    "resourceprovider_owner_id",
 				Unique:  false,
 				Columns: []*schema.Column{ResourceProvidersColumns[5]},
 			},
