@@ -17,4 +17,4 @@ jobs:
         uses: azure/setup-helm@v3.5
 
       - name: Run helm lint
-        run: helm lint chart/tenant-api
+        run: helm lint chart/resource-provider-api
