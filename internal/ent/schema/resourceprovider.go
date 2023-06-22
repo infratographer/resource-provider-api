@@ -47,10 +47,10 @@ func (ResourceProvider) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("DESCRIPTION"),
 			),
-		field.String("organizational_unit_id").
+		field.String("owner_id").
 			GoType(gidx.PrefixedID("")).
 			Immutable().
-			Comment("The ID for the organizational unit for this resource provider.").
+			Comment("The ID for the owner for this resource provider.").
 			Annotations(
 				entgql.Type("ID"),
 				entgql.Skip(^entgql.SkipMutationCreateInput),
@@ -66,7 +66,7 @@ func (ResourceProvider) Edges() []ent.Edge {
 // Indexes of the ResourceProvider.
 func (ResourceProvider) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organizational_unit_id"),
+		index.Fields("owner_id"),
 	}
 }
 

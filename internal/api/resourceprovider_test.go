@@ -16,20 +16,20 @@ import (
 func TestQuery_resourceProvider(t *testing.T) {
 	client := graphTestClient()
 	ctx := context.Background()
-	organizationalUnitID := gidx.MustNewID("testtnt")
+	ownerID := gidx.MustNewID("testtnt")
 	rp1 := (&ResourceProviderBuilder{
-		OrganizationalUnitID: organizationalUnitID,
+		OwnerID: ownerID,
 	}).MustNew(ctx)
 	rp2 := (&ResourceProviderBuilder{
-		Description:          gofakeit.HackerPhrase(),
-		OrganizationalUnitID: organizationalUnitID,
+		Description: gofakeit.HackerPhrase(),
+		OwnerID:     ownerID,
 	}).MustNew(ctx)
 
 	testCases := []struct {
 		name                     string
 		queryID                  gidx.PrefixedID
 		hasDescription           bool
-		hasOrganizationalUnitID  bool
+		hasOwnerID               bool
 		expextedResourceProvider *generated.ResourceProvider
 		errorMsg                 string
 	}{
@@ -70,8 +70,8 @@ func TestQuery_resourceProvider(t *testing.T) {
 			if tc.hasDescription {
 				assert.Equal(t, tc.expextedResourceProvider.Description, *resp.ResourceProvider.Description)
 			}
-			if tc.hasOrganizationalUnitID {
-				assert.Equal(t, tc.expextedResourceProvider.OrganizationalUnitID, *&resp.ResourceProvider.OrganizationalUnit.ID)
+			if tc.hasOwnerID {
+				assert.Equal(t, tc.expextedResourceProvider.OwnerID, resp.ResourceProvider.Owner.ID)
 			}
 		})
 	}
@@ -80,18 +80,18 @@ func TestQuery_resourceProvider(t *testing.T) {
 func Test_HappyPath(t *testing.T) {
 	client := graphTestClient()
 	ctx := context.Background()
-	organizationalUnitID := gidx.MustNewID("testtnt")
+	ownerID := gidx.MustNewID("testtnt")
 
 	t.Run("Create + List + Update + Delete", func(t *testing.T) {
 		td, err := client.ResourceProviderCreate(ctx, testclient.CreateResourceProviderInput{
-			Name:                 gofakeit.JobTitle(),
-			Description:          nil,
-			OrganizationalUnitID: organizationalUnitID,
+			Name:        gofakeit.JobTitle(),
+			Description: nil,
+			OwnerID:     ownerID,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, td)
 
-		list, err := client.ListResourceProviders(ctx, organizationalUnitID, nil)
+		list, err := client.ListResourceProviders(ctx, ownerID, nil)
 		require.NoError(t, err)
 		require.NotNil(t, list)
 		assert.Len(t, list.Entities[0].ResourceProvider.Edges, 1)

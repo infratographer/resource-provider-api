@@ -6,8 +6,8 @@ input CreateResourceProviderInput {
 	name: String!
 	"""The description of the resource provider."""
 	description: String
-	"""The ID for the organizational unit for this resource provider."""
-	organizationalUnitID: ID!
+	"""The ID for the owner for this resource provider."""
+	ownerID: ID!
 }
 """
 Define a Relay Cursor type:
@@ -39,7 +39,7 @@ enum OrderDirection {
 	"""Specifies a descending order for a given `orderBy` argument."""
 	DESC
 }
-type OrganizationalUnit @key(fields: "id") {
+type Owner @key(fields: "id") {
 	id: ID! @external
 	resourceProvider(
 		"""Returns the elements in the list that come after the specified cursor."""
@@ -93,8 +93,8 @@ type ResourceProvider implements Node @key(fields: "id") {
 	name: String!
 	"""The description of the resource provider."""
 	description: String
-	"""The organizationalUnit of the resourceProvider."""
-	organizationalUnit: OrganizationalUnit! @goField(forceResolver: true)
+	"""The owner of the resourceProvider."""
+	owner: Owner! @goField(forceResolver: true)
 }
 """A connection to a list of items."""
 type ResourceProviderConnection {
@@ -218,7 +218,7 @@ input UpdateResourceProviderInput {
 	description: String
 	clearDescription: Boolean
 }
-union _Entity = OrganizationalUnit | ResourceProvider
+union _Entity = Owner | ResourceProvider
 type _Service {
 	sdl: String
 }

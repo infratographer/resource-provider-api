@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	organizationalUnitPrefix = "testtnt"
+	ownerPrefix = "testtnt"
 )
 
 var (
@@ -214,9 +214,9 @@ func newString(s string) *string {
 }
 
 type ResourceProviderBuilder struct {
-	Name                 string
-	Description          string
-	OrganizationalUnitID gidx.PrefixedID
+	Name        string
+	Description string
+	OwnerID     gidx.PrefixedID
 }
 
 func (t *ResourceProviderBuilder) MustNew(ctx context.Context) *ent.ResourceProvider {
@@ -232,11 +232,11 @@ func (t *ResourceProviderBuilder) MustNew(ctx context.Context) *ent.ResourceProv
 		resourceProviderCreate.SetDescription(t.Description)
 	}
 
-	if t.OrganizationalUnitID == "" {
-		t.OrganizationalUnitID = gidx.MustNewID(organizationalUnitPrefix)
+	if t.OwnerID == "" {
+		t.OwnerID = gidx.MustNewID(ownerPrefix)
 	}
 
-	resourceProviderCreate.SetOrganizationalUnitID(t.OrganizationalUnitID)
+	resourceProviderCreate.SetOwnerID(t.OwnerID)
 
 	return resourceProviderCreate.SaveX(ctx)
 }
