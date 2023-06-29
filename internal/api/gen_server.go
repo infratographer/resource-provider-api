@@ -42,19 +42,18 @@ type Config struct {
 type ResolverRoot interface {
 	Entity() EntityResolver
 	Mutation() MutationResolver
-	Owner() OwnerResolver
 	Query() QueryResolver
+	ResourceOwner() ResourceOwnerResolver
 	ResourceProvider() ResourceProviderResolver
 }
 
 type DirectiveRoot struct {
 	ComposeDirective func(ctx context.Context, obj interface{}, next graphql.Resolver, name string) (res interface{}, err error)
-	InterfaceObject  func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
 	Entity struct {
-		FindOwnerByID            func(childComplexity int, id gidx.PrefixedID) int
+		FindResourceOwnerByID    func(childComplexity int, id gidx.PrefixedID) int
 		FindResourceProviderByID func(childComplexity int, id gidx.PrefixedID) int
 	}
 
@@ -62,11 +61,6 @@ type ComplexityRoot struct {
 		ResourceProviderCreate func(childComplexity int, input generated.CreateResourceProviderInput) int
 		ResourceProviderDelete func(childComplexity int, id gidx.PrefixedID) int
 		ResourceProviderUpdate func(childComplexity int, id gidx.PrefixedID, input generated.UpdateResourceProviderInput) int
-	}
-
-	Owner struct {
-		ID               func(childComplexity int) int
-		ResourceProvider func(childComplexity int, after *entgql.Cursor[gidx.PrefixedID], first *int, before *entgql.Cursor[gidx.PrefixedID], last *int, orderBy *generated.ResourceProviderOrder, where *generated.ResourceProviderWhereInput) int
 	}
 
 	PageInfo struct {
@@ -80,6 +74,11 @@ type ComplexityRoot struct {
 		ResourceProvider   func(childComplexity int, id gidx.PrefixedID) int
 		__resolve__service func(childComplexity int) int
 		__resolve_entities func(childComplexity int, representations []map[string]interface{}) int
+	}
+
+	ResourceOwner struct {
+		ID               func(childComplexity int) int
+		ResourceProvider func(childComplexity int, after *entgql.Cursor[gidx.PrefixedID], first *int, before *entgql.Cursor[gidx.PrefixedID], last *int, orderBy *generated.ResourceProviderOrder, where *generated.ResourceProviderWhereInput) int
 	}
 
 	ResourceProvider struct {
@@ -120,7 +119,7 @@ type ComplexityRoot struct {
 }
 
 type EntityResolver interface {
-	FindOwnerByID(ctx context.Context, id gidx.PrefixedID) (*Owner, error)
+	FindResourceOwnerByID(ctx context.Context, id gidx.PrefixedID) (*ResourceOwner, error)
 	FindResourceProviderByID(ctx context.Context, id gidx.PrefixedID) (*generated.ResourceProvider, error)
 }
 type MutationResolver interface {
@@ -128,14 +127,14 @@ type MutationResolver interface {
 	ResourceProviderUpdate(ctx context.Context, id gidx.PrefixedID, input generated.UpdateResourceProviderInput) (*ResourceProviderUpdatePayload, error)
 	ResourceProviderDelete(ctx context.Context, id gidx.PrefixedID) (*ResourceProviderDeletePayload, error)
 }
-type OwnerResolver interface {
-	ResourceProvider(ctx context.Context, obj *Owner, after *entgql.Cursor[gidx.PrefixedID], first *int, before *entgql.Cursor[gidx.PrefixedID], last *int, orderBy *generated.ResourceProviderOrder, where *generated.ResourceProviderWhereInput) (*generated.ResourceProviderConnection, error)
-}
 type QueryResolver interface {
 	ResourceProvider(ctx context.Context, id gidx.PrefixedID) (*generated.ResourceProvider, error)
 }
+type ResourceOwnerResolver interface {
+	ResourceProvider(ctx context.Context, obj *ResourceOwner, after *entgql.Cursor[gidx.PrefixedID], first *int, before *entgql.Cursor[gidx.PrefixedID], last *int, orderBy *generated.ResourceProviderOrder, where *generated.ResourceProviderWhereInput) (*generated.ResourceProviderConnection, error)
+}
 type ResourceProviderResolver interface {
-	Owner(ctx context.Context, obj *generated.ResourceProvider) (*Owner, error)
+	Owner(ctx context.Context, obj *generated.ResourceProvider) (*ResourceOwner, error)
 }
 
 type executableSchema struct {
@@ -153,17 +152,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Entity.findOwnerByID":
-		if e.complexity.Entity.FindOwnerByID == nil {
+	case "Entity.findResourceOwnerByID":
+		if e.complexity.Entity.FindResourceOwnerByID == nil {
 			break
 		}
 
-		args, err := ec.field_Entity_findOwnerByID_args(context.TODO(), rawArgs)
+		args, err := ec.field_Entity_findResourceOwnerByID_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Entity.FindOwnerByID(childComplexity, args["id"].(gidx.PrefixedID)), true
+		return e.complexity.Entity.FindResourceOwnerByID(childComplexity, args["id"].(gidx.PrefixedID)), true
 
 	case "Entity.findResourceProviderByID":
 		if e.complexity.Entity.FindResourceProviderByID == nil {
@@ -212,25 +211,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ResourceProviderUpdate(childComplexity, args["id"].(gidx.PrefixedID), args["input"].(generated.UpdateResourceProviderInput)), true
-
-	case "Owner.id":
-		if e.complexity.Owner.ID == nil {
-			break
-		}
-
-		return e.complexity.Owner.ID(childComplexity), true
-
-	case "Owner.resourceProvider":
-		if e.complexity.Owner.ResourceProvider == nil {
-			break
-		}
-
-		args, err := ec.field_Owner_resourceProvider_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Owner.ResourceProvider(childComplexity, args["after"].(*entgql.Cursor[gidx.PrefixedID]), args["first"].(*int), args["before"].(*entgql.Cursor[gidx.PrefixedID]), args["last"].(*int), args["orderBy"].(*generated.ResourceProviderOrder), args["where"].(*generated.ResourceProviderWhereInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -290,6 +270,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.__resolve_entities(childComplexity, args["representations"].([]map[string]interface{})), true
+
+	case "ResourceOwner.id":
+		if e.complexity.ResourceOwner.ID == nil {
+			break
+		}
+
+		return e.complexity.ResourceOwner.ID(childComplexity), true
+
+	case "ResourceOwner.resourceProvider":
+		if e.complexity.ResourceOwner.ResourceProvider == nil {
+			break
+		}
+
+		args, err := ec.field_ResourceOwner_resourceProvider_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ResourceOwner.ResourceProvider(childComplexity, args["after"].(*entgql.Cursor[gidx.PrefixedID]), args["first"].(*int), args["before"].(*entgql.Cursor[gidx.PrefixedID]), args["last"].(*int), args["orderBy"].(*generated.ResourceProviderOrder), args["where"].(*generated.ResourceProviderWhereInput)), true
 
 	case "ResourceProvider.createdAt":
 		if e.complexity.ResourceProvider.CreatedAt == nil {
@@ -553,7 +552,7 @@ type PageInfo @shareable {
   endCursor: Cursor
 }
 type Query
-type ResourceProvider implements Node @key(fields: "id") {
+type ResourceProvider implements Node @key(fields: "id") @prefixedID(prefix: "resopro") {
   """The ID of the resource provider."""
   id: ID!
   createdAt: Time!
@@ -671,8 +670,10 @@ input UpdateResourceProviderInput {
   clearDescription: Boolean
 }
 `, BuiltIn: false},
-	{Name: "../../schema/owner.graphql", Input: `extend type Owner @key(fields: "id") {
-  id: ID! @external
+	{Name: "../../schema/owner.graphql", Input: `directive @prefixedID(prefix: String!) on OBJECT
+
+type ResourceOwner @key(fields: "id") @interfaceObject {
+  id: ID!
   resourceProvider(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -710,9 +711,8 @@ extend type ResourceProvider {
   """
   The owner of the resourceProvider.
   """
-  owner: Owner! @goField(forceResolver: true)
+  owner: ResourceOwner! @goField(forceResolver: true)
 }
-
 `, BuiltIn: false},
 	{Name: "../../schema/resourceprovider.graphql", Input: `extend type Query {
   """
@@ -814,11 +814,11 @@ type ResourceProviderUpdatePayload {
 `, BuiltIn: true},
 	{Name: "../../federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
-union _Entity = Owner | ResourceProvider
+union _Entity = ResourceOwner | ResourceProvider
 
 # fake type to build resolver interfaces for users to implement
 type Entity {
-		findOwnerByID(id: ID!,): Owner!
+		findResourceOwnerByID(id: ID!,): ResourceOwner!
 	findResourceProviderByID(id: ID!,): ResourceProvider!
 
 }
@@ -854,7 +854,7 @@ func (ec *executionContext) dir_composeDirective_args(ctx context.Context, rawAr
 	return args, nil
 }
 
-func (ec *executionContext) field_Entity_findOwnerByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Entity_findResourceOwnerByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 gidx.PrefixedID
@@ -938,7 +938,52 @@ func (ec *executionContext) field_Mutation_resourceProviderUpdate_args(ctx conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Owner_resourceProvider_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []map[string]interface{}
+	if tmp, ok := rawArgs["representations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("representations"))
+		arg0, err = ec.unmarshalN_Any2ᚕmapᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["representations"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_resourceProvider_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 gidx.PrefixedID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_ResourceOwner_resourceProvider_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *entgql.Cursor[gidx.PrefixedID]
@@ -998,51 +1043,6 @@ func (ec *executionContext) field_Owner_resourceProvider_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 []map[string]interface{}
-	if tmp, ok := rawArgs["representations"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("representations"))
-		arg0, err = ec.unmarshalN_Any2ᚕmapᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["representations"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_resourceProvider_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 gidx.PrefixedID
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1081,8 +1081,8 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Entity_findOwnerByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Entity_findOwnerByID(ctx, field)
+func (ec *executionContext) _Entity_findResourceOwnerByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Entity_findResourceOwnerByID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1095,7 +1095,7 @@ func (ec *executionContext) _Entity_findOwnerByID(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Entity().FindOwnerByID(rctx, fc.Args["id"].(gidx.PrefixedID))
+		return ec.resolvers.Entity().FindResourceOwnerByID(rctx, fc.Args["id"].(gidx.PrefixedID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1107,12 +1107,12 @@ func (ec *executionContext) _Entity_findOwnerByID(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Owner)
+	res := resTmp.(*ResourceOwner)
 	fc.Result = res
-	return ec.marshalNOwner2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐOwner(ctx, field.Selections, res)
+	return ec.marshalNResourceOwner2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐResourceOwner(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Entity_findOwnerByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Entity_findResourceOwnerByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Entity",
 		Field:      field,
@@ -1121,11 +1121,11 @@ func (ec *executionContext) fieldContext_Entity_findOwnerByID(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Owner_id(ctx, field)
+				return ec.fieldContext_ResourceOwner_id(ctx, field)
 			case "resourceProvider":
-				return ec.fieldContext_Owner_resourceProvider(ctx, field)
+				return ec.fieldContext_ResourceOwner_resourceProvider(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Owner", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ResourceOwner", field.Name)
 		},
 	}
 	defer func() {
@@ -1135,9 +1135,9 @@ func (ec *executionContext) fieldContext_Entity_findOwnerByID(ctx context.Contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Entity_findOwnerByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Entity_findResourceOwnerByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1206,7 +1206,7 @@ func (ec *executionContext) fieldContext_Entity_findResourceProviderByID(ctx con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Entity_findResourceProviderByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1265,7 +1265,7 @@ func (ec *executionContext) fieldContext_Mutation_resourceProviderCreate(ctx con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_resourceProviderCreate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1324,7 +1324,7 @@ func (ec *executionContext) fieldContext_Mutation_resourceProviderUpdate(ctx con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_resourceProviderUpdate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1383,114 +1383,7 @@ func (ec *executionContext) fieldContext_Mutation_resourceProviderDelete(ctx con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_resourceProviderDelete_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Owner_id(ctx context.Context, field graphql.CollectedField, obj *Owner) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Owner_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(gidx.PrefixedID)
-	fc.Result = res
-	return ec.marshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Owner_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Owner",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Owner_resourceProvider(ctx context.Context, field graphql.CollectedField, obj *Owner) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Owner_resourceProvider(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Owner().ResourceProvider(rctx, obj, fc.Args["after"].(*entgql.Cursor[gidx.PrefixedID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[gidx.PrefixedID]), fc.Args["last"].(*int), fc.Args["orderBy"].(*generated.ResourceProviderOrder), fc.Args["where"].(*generated.ResourceProviderWhereInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*generated.ResourceProviderConnection)
-	fc.Result = res
-	return ec.marshalNResourceProviderConnection2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋentᚋgeneratedᚐResourceProviderConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Owner_resourceProvider(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Owner",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "edges":
-				return ec.fieldContext_ResourceProviderConnection_edges(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_ResourceProviderConnection_pageInfo(ctx, field)
-			case "totalCount":
-				return ec.fieldContext_ResourceProviderConnection_totalCount(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ResourceProviderConnection", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Owner_resourceProvider_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1729,7 +1622,7 @@ func (ec *executionContext) fieldContext_Query_resourceProvider(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_resourceProvider_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1784,7 +1677,7 @@ func (ec *executionContext) fieldContext_Query__entities(ctx context.Context, fi
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query__entities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1906,7 +1799,7 @@ func (ec *executionContext) fieldContext_Query___type(ctx context.Context, field
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query___type_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1962,6 +1855,113 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ResourceOwner_id(ctx context.Context, field graphql.CollectedField, obj *ResourceOwner) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ResourceOwner_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gidx.PrefixedID)
+	fc.Result = res
+	return ec.marshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ResourceOwner_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ResourceOwner",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ResourceOwner_resourceProvider(ctx context.Context, field graphql.CollectedField, obj *ResourceOwner) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ResourceOwner_resourceProvider(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ResourceOwner().ResourceProvider(rctx, obj, fc.Args["after"].(*entgql.Cursor[gidx.PrefixedID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[gidx.PrefixedID]), fc.Args["last"].(*int), fc.Args["orderBy"].(*generated.ResourceProviderOrder), fc.Args["where"].(*generated.ResourceProviderWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*generated.ResourceProviderConnection)
+	fc.Result = res
+	return ec.marshalNResourceProviderConnection2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋentᚋgeneratedᚐResourceProviderConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ResourceOwner_resourceProvider(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ResourceOwner",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_ResourceProviderConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_ResourceProviderConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_ResourceProviderConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ResourceProviderConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ResourceOwner_resourceProvider_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -2209,9 +2209,9 @@ func (ec *executionContext) _ResourceProvider_owner(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Owner)
+	res := resTmp.(*ResourceOwner)
 	fc.Result = res
-	return ec.marshalNOwner2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐOwner(ctx, field.Selections, res)
+	return ec.marshalNResourceOwner2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐResourceOwner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ResourceProvider_owner(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2223,11 +2223,11 @@ func (ec *executionContext) fieldContext_ResourceProvider_owner(ctx context.Cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Owner_id(ctx, field)
+				return ec.fieldContext_ResourceOwner_id(ctx, field)
 			case "resourceProvider":
-				return ec.fieldContext_Owner_resourceProvider(ctx, field)
+				return ec.fieldContext_ResourceOwner_resourceProvider(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Owner", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ResourceOwner", field.Name)
 		},
 	}
 	return fc, nil
@@ -4099,7 +4099,7 @@ func (ec *executionContext) fieldContext___Type_fields(ctx context.Context, fiel
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field___Type_fields_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4287,7 +4287,7 @@ func (ec *executionContext) fieldContext___Type_enumValues(ctx context.Context, 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field___Type_enumValues_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -5124,13 +5124,13 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case Owner:
-		return ec._Owner(ctx, sel, &obj)
-	case *Owner:
+	case ResourceOwner:
+		return ec._ResourceOwner(ctx, sel, &obj)
+	case *ResourceOwner:
 		if obj == nil {
 			return graphql.Null
 		}
-		return ec._Owner(ctx, sel, obj)
+		return ec._ResourceOwner(ctx, sel, obj)
 	case generated.ResourceProvider:
 		return ec._ResourceProvider(ctx, sel, &obj)
 	case *generated.ResourceProvider:
@@ -5166,7 +5166,7 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Entity")
-		case "findOwnerByID":
+		case "findResourceOwnerByID":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -5175,7 +5175,7 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Entity_findOwnerByID(ctx, field)
+				res = ec._Entity_findResourceOwnerByID(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -5273,81 +5273,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var ownerImplementors = []string{"Owner", "_Entity"}
-
-func (ec *executionContext) _Owner(ctx context.Context, sel ast.SelectionSet, obj *Owner) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, ownerImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Owner")
-		case "id":
-			out.Values[i] = ec._Owner_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "resourceProvider":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Owner_resourceProvider(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5512,6 +5437,81 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var resourceOwnerImplementors = []string{"ResourceOwner", "_Entity"}
+
+func (ec *executionContext) _ResourceOwner(ctx context.Context, sel ast.SelectionSet, obj *ResourceOwner) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, resourceOwnerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ResourceOwner")
+		case "id":
+			out.Values[i] = ec._ResourceOwner_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "resourceProvider":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ResourceOwner_resourceProvider(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6273,22 +6273,22 @@ func (ec *executionContext) marshalNOrderDirection2entgoᚗioᚋcontribᚋentgql
 	return v
 }
 
-func (ec *executionContext) marshalNOwner2goᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐOwner(ctx context.Context, sel ast.SelectionSet, v Owner) graphql.Marshaler {
-	return ec._Owner(ctx, sel, &v)
+func (ec *executionContext) marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v entgql.PageInfo[gidx.PrefixedID]) graphql.Marshaler {
+	return ec._PageInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOwner2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐOwner(ctx context.Context, sel ast.SelectionSet, v *Owner) graphql.Marshaler {
+func (ec *executionContext) marshalNResourceOwner2goᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐResourceOwner(ctx context.Context, sel ast.SelectionSet, v ResourceOwner) graphql.Marshaler {
+	return ec._ResourceOwner(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNResourceOwner2ᚖgoᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋapiᚐResourceOwner(ctx context.Context, sel ast.SelectionSet, v *ResourceOwner) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._Owner(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v entgql.PageInfo[gidx.PrefixedID]) graphql.Marshaler {
-	return ec._PageInfo(ctx, sel, &v)
+	return ec._ResourceOwner(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNResourceProvider2goᚗinfratographerᚗcomᚋresourceᚑproviderᚑapiᚋinternalᚋentᚋgeneratedᚐResourceProvider(ctx context.Context, sel ast.SelectionSet, v generated.ResourceProvider) graphql.Marshaler {

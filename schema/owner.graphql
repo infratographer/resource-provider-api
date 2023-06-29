@@ -1,5 +1,7 @@
-extend type Owner @key(fields: "id") {
-  id: ID! @external
+directive @prefixedID(prefix: String!) on OBJECT
+
+type ResourceOwner @key(fields: "id") @interfaceObject {
+  id: ID!
   resourceProvider(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -37,6 +39,5 @@ extend type ResourceProvider {
   """
   The owner of the resourceProvider.
   """
-  owner: Owner! @goField(forceResolver: true)
+  owner: ResourceOwner! @goField(forceResolver: true)
 }
-

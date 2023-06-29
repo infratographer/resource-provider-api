@@ -46,7 +46,7 @@ type PageInfo @shareable {
   endCursor: Cursor
 }
 type Query
-type ResourceProvider implements Node @key(fields: "id") {
+type ResourceProvider implements Node @key(fields: "id") @prefixedID(prefix: "resopro") {
   """The ID of the resource provider."""
   id: ID!
   createdAt: Time!

@@ -123,8 +123,8 @@ func (c *Client) GetResourceProvider(ctx context.Context, id gidx.PrefixedID, ht
 }
 
 const ListResourceProvidersDocument = `query ListResourceProviders ($id: ID!, $orderBy: ResourceProviderOrder) {
-	_entities(representations: [{__typename:"Owner",id:$id}]) {
-		... on Owner {
+	_entities(representations: [{__typename:"ResourceOwner",id:$id}]) {
+		... on ResourceOwner {
 			resourceProvider(orderBy: $orderBy) {
 				edges {
 					node {

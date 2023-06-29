@@ -1,63 +1,66 @@
 query GetResourceProvider($id: ID!) {
-    resourceProvider(id: $id) {
-        id
-        name
-        description
-        owner{
-            id
-        }
-        createdAt
-        updatedAt
+  resourceProvider(id: $id) {
+    id
+    name
+    description
+    owner {
+      id
     }
+    createdAt
+    updatedAt
+  }
 }
 
-query ListResourceProviders($id:ID!, $orderBy: ResourceProviderOrder){
-    _entities(representations: [{__typename: "Owner", id: $id}]) {
-        ... on Owner {
-            resourceProvider(orderBy: $orderBy) {
-                edges {
-                    node {
-                        id
-                        name
-                    }
-                }
-            }
+query ListResourceProviders($id: ID!, $orderBy: ResourceProviderOrder) {
+  _entities(representations: [{ __typename: "ResourceOwner", id: $id }]) {
+    ... on ResourceOwner {
+      resourceProvider(orderBy: $orderBy) {
+        edges {
+          node {
+            id
+            name
+          }
         }
+      }
     }
+  }
 }
 
 mutation ResourceProviderCreate($input: CreateResourceProviderInput!) {
-    resourceProviderCreate(input: $input) {
-        resourceProvider {
-            id
-            name
-            description
-            owner{
-                id
-            }
-            createdAt
-            updatedAt
-        }
+  resourceProviderCreate(input: $input) {
+    resourceProvider {
+      id
+      name
+      description
+      owner {
+        id
+      }
+      createdAt
+      updatedAt
     }
+  }
 }
 
-mutation ResourceProviderUpdate($id: ID!,$input: UpdateResourceProviderInput!) {
-    resourceProviderUpdate(id: $id input: $input) {
-        resourceProvider {
-            id
-            name
-            description
-            owner{
-                id
-            }
-            createdAt
-            updatedAt
-        }
+mutation ResourceProviderUpdate(
+  $id: ID!
+  $input: UpdateResourceProviderInput!
+) {
+  resourceProviderUpdate(id: $id, input: $input) {
+    resourceProvider {
+      id
+      name
+      description
+      owner {
+        id
+      }
+      createdAt
+      updatedAt
     }
+  }
 }
 
-mutation ResourceProviderDelete($id: ID!){
-    resourceProviderDelete(id: $id){
-        deletedID
-    }
+mutation ResourceProviderDelete($id: ID!) {
+  resourceProviderDelete(id: $id) {
+    deletedID
+  }
 }

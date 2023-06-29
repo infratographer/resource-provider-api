@@ -49,6 +49,8 @@ resolver:
 directives:
   prefixedID:
     skip_runtime: true
+  interfaceObject:
+    skip_runtime: true
 
 autobind:
   - "go.infratographer.com/resource-provider-api/internal/api"

@@ -80,21 +80,21 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 		}()
 
 		switch typeName {
-		case "Owner":
-			resolverName, err := entityResolverNameForOwner(ctx, rep)
+		case "ResourceOwner":
+			resolverName, err := entityResolverNameForResourceOwner(ctx, rep)
 			if err != nil {
-				return fmt.Errorf(`finding resolver for Entity "Owner": %w`, err)
+				return fmt.Errorf(`finding resolver for Entity "ResourceOwner": %w`, err)
 			}
 			switch resolverName {
 
-			case "findOwnerByID":
+			case "findResourceOwnerByID":
 				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["id"])
 				if err != nil {
-					return fmt.Errorf(`unmarshalling param 0 for findOwnerByID(): %w`, err)
+					return fmt.Errorf(`unmarshalling param 0 for findResourceOwnerByID(): %w`, err)
 				}
-				entity, err := ec.resolvers.Entity().FindOwnerByID(ctx, id0)
+				entity, err := ec.resolvers.Entity().FindResourceOwnerByID(ctx, id0)
 				if err != nil {
-					return fmt.Errorf(`resolving Entity "Owner": %w`, err)
+					return fmt.Errorf(`resolving Entity "ResourceOwner": %w`, err)
 				}
 
 				list[idx[i]] = entity
@@ -189,7 +189,7 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 	}
 }
 
-func entityResolverNameForOwner(ctx context.Context, rep map[string]interface{}) (string, error) {
+func entityResolverNameForResourceOwner(ctx context.Context, rep map[string]interface{}) (string, error) {
 	for {
 		var (
 			m   map[string]interface{}
@@ -201,9 +201,9 @@ func entityResolverNameForOwner(ctx context.Context, rep map[string]interface{})
 		if _, ok = m["id"]; !ok {
 			break
 		}
-		return "findOwnerByID", nil
+		return "findResourceOwnerByID", nil
 	}
-	return "", fmt.Errorf("%w for Owner", ErrTypeNotFound)
+	return "", fmt.Errorf("%w for ResourceOwner", ErrTypeNotFound)
 }
 
 func entityResolverNameForResourceProvider(ctx context.Context, rep map[string]interface{}) (string, error) {

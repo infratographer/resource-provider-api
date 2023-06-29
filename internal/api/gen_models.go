@@ -7,12 +7,12 @@ import (
 	"go.infratographer.com/x/gidx"
 )
 
-type Owner struct {
+type ResourceOwner struct {
 	ID               gidx.PrefixedID                       `json:"id"`
 	ResourceProvider *generated.ResourceProviderConnection `json:"resourceProvider"`
 }
 
-func (Owner) IsEntity() {}
+func (ResourceOwner) IsEntity() {}
 
 // Return response from resourceProviderCreate
 type ResourceProviderCreatePayload struct {

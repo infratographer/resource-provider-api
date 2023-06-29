@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/vektah/gqlparser/v2/ast"
 
 	"go.infratographer.com/x/entx"
 	"go.infratographer.com/x/gidx"
@@ -75,10 +76,26 @@ func (ResourceProvider) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.GraphKeyDirective("id"),
 		schema.Comment("Represents a Resource Provider on the graph."),
+		prefixIDDirective(ResourceProviderPrefix),
 		entgql.RelayConnection(),
 		entgql.Mutations(
 			entgql.MutationCreate().Description("Create a new ResourceProvider."),
 			entgql.MutationUpdate().Description("Update an existing ResourceProvider."),
 		),
 	}
+}
+
+func prefixIDDirective(prefix string) entgql.Annotation {
+	var args []*ast.Argument
+	if prefix != "" {
+		args = append(args, &ast.Argument{
+			Name: "prefix",
+			Value: &ast.Value{
+				Raw:  prefix,
+				Kind: ast.StringValue,
+			},
+		})
+	}
+
+	return entgql.Directives(entgql.NewDirective("prefixedID", args...))
 }
