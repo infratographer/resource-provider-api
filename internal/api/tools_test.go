@@ -1,3 +1,6 @@
+//go:build testtools
+// +build testtools
+
 package api_test
 
 import (
