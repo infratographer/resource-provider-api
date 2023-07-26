@@ -21,6 +21,7 @@ var AppConfig struct {
 	Tracing    otelx.Config
 }
 
+// EventsConfig stores the configuration for an event publisher
 type EventsConfig struct {
 	Publisher events.PublisherConfig
 }
