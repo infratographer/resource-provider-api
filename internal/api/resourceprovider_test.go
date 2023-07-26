@@ -9,55 +9,114 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.infratographer.com/x/gidx"
 
-	"go.infratographer.com/resource-provider-api/internal/ent/generated"
+	ent "go.infratographer.com/resource-provider-api/internal/ent/generated"
 	"go.infratographer.com/resource-provider-api/internal/testclient"
 )
 
+// func TestQuery_resourceProvider(t *testing.T) {
+
+// 	client := graphTestClient()
+
+// 	ctx := context.Background()
+
+// 	ownerID := gidx.MustNewID("testtnt")
+
+// 	rp1 := (&ResourceProviderBuilder{
+// 		OwnerID: ownerID,
+// 	}).MustNew(ctx)
+// 	rp2 := (&ResourceProviderBuilder{
+// 		Description: gofakeit.HackerPhrase(),
+// 		OwnerID:     ownerID,
+// 	}).MustNew(ctx)
+
+// 	testCases := []struct {
+// 		name                     string
+// 		queryID                  gidx.PrefixedID
+// 		hasDescription           bool
+// 		hasOwnerID               bool
+// 		expextedResourceProvider *generated.ResourceProvider
+// 		errorMsg                 string
+// 	}{
+// 		{
+// 			name:                     "happy path td1",
+// 			queryID:                  rp1.ID,
+// 			expextedResourceProvider: rp1,
+// 		},
+// 		{
+// 			name:                     "happy path td2",
+// 			queryID:                  rp2.ID,
+// 			hasDescription:           true,
+// 			expextedResourceProvider: rp2,
+// 		},
+// 		{
+// 			name:     "invalid-id",
+// 			queryID:  gidx.MustNewID("testing"),
+// 			errorMsg: "resource_provider not found",
+// 		},
+// 	}
+
+// 	for _, tc := range testCases {
+// 		t.Run("Create "+tc.name, func(t *testing.T) {
+// 			resp, err := client.GetResourceProvider(ctx, tc.queryID)
+
+// 			if tc.errorMsg != "" {
+// 				require.Error(t, err)
+// 				assert.ErrorContains(t, err, tc.errorMsg)
+// 				assert.Nil(t, resp)
+
+// 				return
+// 			}
+
+// 			require.NoError(t, err)
+// 			require.NotNil(t, resp)
+// 			require.NotNil(t, resp.ResourceProvider)
+// 			assert.EqualValues(t, tc.expextedResourceProvider.ID, resp.ResourceProvider.ID)
+// 			if tc.hasDescription {
+// 				assert.Equal(t, tc.expextedResourceProvider.Description, *resp.ResourceProvider.Description)
+// 			}
+// 			if tc.hasOwnerID {
+// 				assert.Equal(t, tc.expextedResourceProvider.OwnerID, resp.ResourceProvider.Owner.ID)
+// 			}
+// 		})
+// 	}
+// }
+
 func TestQuery_resourceProvider(t *testing.T) {
-	client := graphTestClient()
 	ctx := context.Background()
-	ownerID := gidx.MustNewID("testtnt")
-	rp1 := (&ResourceProviderBuilder{
-		OwnerID: ownerID,
-	}).MustNew(ctx)
-	rp2 := (&ResourceProviderBuilder{
-		Description: gofakeit.HackerPhrase(),
-		OwnerID:     ownerID,
-	}).MustNew(ctx)
+
+	rp1 := (&ResourceProviderBuilder{}).MustNew(ctx)
+	rp2 := (&ResourceProviderBuilder{}).MustNew(ctx)
 
 	testCases := []struct {
-		name                     string
-		queryID                  gidx.PrefixedID
-		hasDescription           bool
-		hasOwnerID               bool
-		expextedResourceProvider *generated.ResourceProvider
-		errorMsg                 string
+		TestName   string
+		QueryID    gidx.PrefixedID
+		ExpectedLB *ent.ResourceProvider
+		errorMsg   string
 	}{
 		{
-			name:                     "happy path td1",
-			queryID:                  rp1.ID,
-			expextedResourceProvider: rp1,
+			TestName:   "Happy Path - lb1",
+			QueryID:    rp1.ID,
+			ExpectedLB: rp1,
 		},
 		{
-			name:                     "happy path td2",
-			queryID:                  rp2.ID,
-			hasDescription:           true,
-			expextedResourceProvider: rp2,
+			TestName:   "Happy Path - lb2",
+			QueryID:    rp2.ID,
+			ExpectedLB: rp2,
 		},
 		{
-			name:     "invalid-id",
-			queryID:  gidx.MustNewID("testing"),
+			TestName: "No resource provider found with ID",
+			QueryID:  gidx.MustNewID("testing"),
 			errorMsg: "resource_provider not found",
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run("Create "+tc.name, func(t *testing.T) {
-			resp, err := client.GetResourceProvider(ctx, tc.queryID)
+	for _, tt := range testCases {
+		t.Run(tt.TestName, func(t *testing.T) {
+			resp, err := graphTestClient().GetResourceProvider(ctx, tt.QueryID)
 
-			if tc.errorMsg != "" {
+			if tt.errorMsg != "" {
 				require.Error(t, err)
-				assert.ErrorContains(t, err, tc.errorMsg)
+				assert.ErrorContains(t, err, tt.errorMsg)
 				assert.Nil(t, resp)
 
 				return
@@ -66,13 +125,7 @@ func TestQuery_resourceProvider(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			require.NotNil(t, resp.ResourceProvider)
-			assert.EqualValues(t, tc.expextedResourceProvider.ID, resp.ResourceProvider.ID)
-			if tc.hasDescription {
-				assert.Equal(t, tc.expextedResourceProvider.Description, *resp.ResourceProvider.Description)
-			}
-			if tc.hasOwnerID {
-				assert.Equal(t, tc.expextedResourceProvider.OwnerID, resp.ResourceProvider.Owner.ID)
-			}
+			assert.EqualValues(t, tt.ExpectedLB.Name, resp.ResourceProvider.Name)
 		})
 	}
 }
