@@ -10,12 +10,14 @@ import (
 	"github.com/spf13/viper"
 	"go.infratographer.com/x/echojwtx"
 	"go.infratographer.com/x/echox"
+	"go.infratographer.com/x/events"
 	"go.infratographer.com/x/versionx"
 	"go.uber.org/zap"
 
 	"go.infratographer.com/resource-provider-api/internal/api"
 	"go.infratographer.com/resource-provider-api/internal/config"
 	ent "go.infratographer.com/resource-provider-api/internal/ent/generated"
+	"go.infratographer.com/resource-provider-api/internal/ent/generated/eventhooks"
 )
 
 const (
@@ -40,6 +42,7 @@ func init() {
 
 	echox.MustViperFlags(viper.GetViper(), serveCmd.Flags(), defaultListenAddr)
 	echojwtx.MustViperFlags(viper.GetViper(), serveCmd.Flags())
+	events.MustViperFlagsForPublisher(viper.GetViper(), serveCmd.Flags(), appName)
 
 	// only available as a CLI arg because it shouldn't be something that could accidentially end up in a config file or env var
 	serveCmd.Flags().BoolVar(&serveDevMode, "dev", false, "dev mode: enables playground, disables all auth checks, sets CORS to allow all, pretty logging, etc.")
@@ -54,7 +57,12 @@ func serve(ctx context.Context) error {
 		config.AppConfig.Server.WithMiddleware(middleware.CORS())
 	}
 
-	cOpts := []ent.Option{}
+	pub, err := events.NewPublisher(config.AppConfig.Events.Publisher)
+	if err != nil {
+		logger.Fatalw("failed to create publisher", "error", err)
+	}
+
+	cOpts := []ent.Option{ent.EventsPublisher(pub)}
 
 	if config.AppConfig.Logging.Debug {
 		cOpts = append(cOpts,
@@ -75,6 +83,8 @@ func serve(ctx context.Context) error {
 		logger.Errorf("failed creating schema resources", zap.Error(err))
 		return err
 	}
+
+	eventhooks.EventHooks(client)
 
 	// jwt auth middleware
 	if !serveDevMode {

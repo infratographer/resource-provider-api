@@ -55,6 +55,7 @@ func (ResourceProvider) Fields() []ent.Field {
 			Annotations(
 				entgql.Type("ID"),
 				entgql.Skip(^entgql.SkipMutationCreateInput),
+				entx.EventsHookAdditionalSubject(),
 			),
 	}
 }
@@ -82,6 +83,7 @@ func (ResourceProvider) Annotations() []schema.Annotation {
 			entgql.MutationCreate().Description("Create a new ResourceProvider."),
 			entgql.MutationUpdate().Description("Update an existing ResourceProvider."),
 		),
+		entx.EventsHookSubjectName("resource-provider"),
 	}
 }
 
