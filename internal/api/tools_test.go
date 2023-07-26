@@ -1,17 +1,11 @@
-//go:build testtools
-// +build testtools
-
 package api_test
 
 import (
-	"bytes"
 	"context"
-	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -28,12 +22,14 @@ import (
 	"go.infratographer.com/x/echox"
 	"go.infratographer.com/x/events"
 	"go.infratographer.com/x/gidx"
+	"go.infratographer.com/x/goosex"
+	"go.infratographer.com/x/testing/containersx"
 	"go.infratographer.com/x/testing/eventtools"
 
-	"go.infratographer.com/x/testing/containersx"
-
+	"go.infratographer.com/resource-provider-api/db"
 	"go.infratographer.com/resource-provider-api/internal/api"
 	ent "go.infratographer.com/resource-provider-api/internal/ent/generated"
+	"go.infratographer.com/resource-provider-api/internal/ent/generated/eventhooks"
 	"go.infratographer.com/resource-provider-api/internal/testclient"
 )
 
@@ -124,22 +120,10 @@ func setupDB() {
 		errPanic("failed creating db scema", c.Schema.Create(ctx))
 	case dialect.Postgres:
 		log.Println("Running database migrations")
-
-		cmd := exec.Command("atlas", "migrate", "apply",
-			"--dir", "file://../../db/migrations",
-			"--url", uri,
-		)
-
-		// write all output to stdout and stderr as it comes through
-		var stdBuffer bytes.Buffer
-		mw := io.MultiWriter(os.Stdout, &stdBuffer)
-
-		cmd.Stdout = mw
-		cmd.Stderr = mw
-
-		// Execute the command
-		errPanic("atlas returned an error running database migrations", cmd.Run())
+		goosex.MigrateUp(uri, db.Migrations)
 	}
+
+	eventhooks.EventHooks(c)
 
 	EntClient = c
 }
