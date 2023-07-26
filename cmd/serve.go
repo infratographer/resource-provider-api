@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3" // sqlite3 driver
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.infratographer.com/x/crdbx"
 	"go.infratographer.com/x/echojwtx"
 	"go.infratographer.com/x/echox"
 	"go.infratographer.com/x/events"
@@ -62,7 +64,16 @@ func serve(ctx context.Context) error {
 		logger.Fatalw("failed to create publisher", "error", err)
 	}
 
-	cOpts := []ent.Option{ent.EventsPublisher(pub)}
+	db, err := crdbx.NewDB(config.AppConfig.CRDB, config.AppConfig.Tracing.Enabled)
+	if err != nil {
+		logger.Fatalw("failed to connect to database", "error", err)
+	}
+
+	defer db.Close()
+
+	entDB := entsql.OpenDB(dialect.Postgres, db)
+
+	cOpts := []ent.Option{ent.Driver(entDB), ent.EventsPublisher(pub)}
 
 	if config.AppConfig.Logging.Debug {
 		cOpts = append(cOpts,
@@ -71,11 +82,7 @@ func serve(ctx context.Context) error {
 		)
 	}
 
-	client, err := ent.Open(dialect.SQLite, "file:ent?mode=memory&cache=shared&_fk=1", cOpts...)
-	if err != nil {
-		logger.Error("failed opening connection to sqlite", zap.Error(err))
-		return err
-	}
+	client := ent.NewClient(cOpts...)
 	defer client.Close()
 
 	// Run the automatic migration tool to create all schema resources.

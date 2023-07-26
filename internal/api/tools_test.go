@@ -26,7 +26,9 @@ import (
 
 	"go.infratographer.com/x/echojwtx"
 	"go.infratographer.com/x/echox"
+	"go.infratographer.com/x/events"
 	"go.infratographer.com/x/gidx"
+	"go.infratographer.com/x/testing/eventtools"
 
 	"go.infratographer.com/x/testing/containersx"
 
@@ -100,7 +102,17 @@ func setupDB() {
 
 	dia, uri, cntr := parseDBURI(ctx)
 
-	c, err := ent.Open(dia, uri, ent.Debug())
+	nats, err := eventtools.NewNatsServer()
+	if err != nil {
+		errPanic("failed to start nats server", err)
+	}
+
+	pub, err := events.NewPublisher(nats.PublisherConfig)
+	if err != nil {
+		errPanic("failed to create events publisher", err)
+	}
+
+	c, err := ent.Open(dia, uri, ent.Debug(), ent.EventsPublisher(pub))
 	if err != nil {
 		errPanic("failed terminating test db container after failing to connect to the db", cntr.Container.Terminate(ctx))
 		errPanic("failed opening connection to database:", err)
