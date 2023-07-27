@@ -119,24 +119,6 @@ func serve(ctx context.Context) error {
 		logger.Error("failed to create server", zap.Error(err))
 	}
 
-	// // jwt auth middleware
-	// if !serveDevMode {
-	// 	authconfig := config.AppConfig.AuthConfig
-	// 	config.AppConfig.Auth.JWTConfig.Skipper = echox.SkipDefaultEndpoints
-
-	// 	auth, err := echojwtx.NewAuth(ctx, authconfig)
-	// 	if err != nil {
-	// 		logger.Fatal("failed to initialize jwt authentication", zap.Error(err))
-	// 	}
-
-	// 	config.AppConfig.Server = config.AppConfig.Server.WithMiddleware(auth.Middleware())
-	// }
-
-	// srv, err := echox.NewServer(logger.Desugar(), config.AppConfig.Server, versionx.BuildDetails())
-	// if err != nil {
-	// 	logger.Error("failed to create server", zap.Error(err))
-	// }
-
 	perms, err := permissions.New(config.AppConfig.Permissions,
 		permissions.WithLogger(logger),
 		permissions.WithDefaultChecker(permissions.DefaultAllowChecker),

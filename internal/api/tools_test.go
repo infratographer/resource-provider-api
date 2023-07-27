@@ -253,14 +253,6 @@ func newString(s string) *string {
 	return &s
 }
 
-func newBool(b bool) *bool {
-	return &b
-}
-
-func newInt64(i int64) *int64 {
-	return &i
-}
-
 type ResourceProviderBuilder struct {
 	Name        string
 	Description string
