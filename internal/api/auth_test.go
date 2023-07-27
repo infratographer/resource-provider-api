@@ -12,7 +12,7 @@ import (
 	"go.infratographer.com/x/testing/auth"
 )
 
-func TestJWTEnabledLoadbalancerGETWithAuthClient(t *testing.T) {
+func TestJWTEnabledResourceProviderGETWithAuthClient(t *testing.T) {
 	oauthCLI, issuer, oAuthClose := auth.OAuthTestClient("urn:test:resourceprovider", "")
 	defer oAuthClose()
 
@@ -45,8 +45,8 @@ func TestJWTEnabledLoadbalancerGETWithAuthClient(t *testing.T) {
 	assert.Equal(t, lb1.ID, resp.ResourceProvider.ID)
 }
 
-func TestJWTENabledLoadbalancerGETWithDefaultClient(t *testing.T) {
-	_, issuer, oAuthClose := auth.OAuthTestClient("urn:test:loadbalancer", "")
+func TestJWTENabledResourceProviderGETWithDefaultClient(t *testing.T) {
+	_, issuer, oAuthClose := auth.OAuthTestClient("urn:test:resourceprovider", "")
 	defer oAuthClose()
 
 	srv, err := newTestServer(
