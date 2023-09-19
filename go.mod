@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	entgo.io/contrib v0.4.5
-	entgo.io/ent v0.12.4-0.20230503082810-f251400818ea
+	entgo.io/ent v0.12.3
 	github.com/99designs/gqlgen v0.17.34
 	github.com/Yamashou/gqlgenc v0.14.0
 	github.com/brianvoe/gofakeit/v6 v6.23.0
