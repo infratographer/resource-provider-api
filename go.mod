@@ -18,7 +18,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.25.0
 	github.com/vektah/gqlparser/v2 v2.5.10
-	github.com/wundergraph/graphql-go-tools v1.66.3
+	github.com/wundergraph/graphql-go-tools v1.67.2
 	go.infratographer.com/permissions-api v0.2.7
 	go.infratographer.com/x v0.3.9
 	go.uber.org/zap v1.26.0
@@ -59,7 +59,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/uuid v1.3.1 // indirect
+	github.com/google/uuid v1.4.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
