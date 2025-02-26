@@ -15,7 +15,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ci-database: ["sqlite", "cockroach-v22.1", "cockroach-v22.2", "cockroach-latest", "postgres-14", "postgres-15", "postgres-latest"]
+        ci-database:
+          [
+            "sqlite",
+            "cockroach-v22.1",
+            "cockroach-v22.2",
+            "cockroach-latest",
+            "postgres-14",
+            "postgres-15",
+            "postgres-latest",
+          ]
         include:
           - ci-database: "sqlite"
             env-database-uri: "sqlite://file:ent?mode=memory&cache=shared&_fk=1"
@@ -36,7 +45,7 @@ jobs:
       - name: Checkout code for ${{ matrix.ci-database }}
         uses: actions/checkout@v4
       - name: Set up Go for ${{ matrix.ci-database }}
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
       - name: Install atlas for db migrations on ${{ matrix.ci-database }}
