@@ -93,5 +93,5 @@ func TestJWTENabledResourceProviderGETWithDefaultClient(t *testing.T) {
 
 	require.Error(t, err, "Expected an authorization error")
 	require.Nil(t, resp)
-	assert.ErrorContains(t, err, `{"networkErrors":{"code":401`)
+	assert.ErrorContains(t, err, `{"networkErrors":{"code":400`)
 }

@@ -3,9 +3,15 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/labstack/echo/v4"
+	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/wundergraph/graphql-go-tools/pkg/playground"
 	"go.uber.org/zap"
 
@@ -21,6 +27,12 @@ var (
 	playgroundPath = "playground"
 
 	graphFullPath = fmt.Sprintf("/%s", graphPath)
+)
+
+const (
+	defaultKeepAlivePingIntervalSeconds = 10
+	defaultQueryCacheSize               = 1000
+	defaultPersistedQuerySize           = 100
 )
 
 // Resolver provides a graph response resolver
@@ -49,7 +61,7 @@ type Handler struct {
 func (r *Resolver) Handler(withPlayground bool, middleware ...echo.MiddlewareFunc) *Handler {
 	h := &Handler{
 		r: r,
-		graphqlHandler: handler.NewDefaultServer(
+		graphqlHandler: newDefaultServer(
 			NewExecutableSchema(
 				Config{
 					Resolvers: r,
@@ -102,4 +114,25 @@ func (h *Handler) Routes(e *echo.Group) {
 			})
 		}
 	}
+}
+
+func newDefaultServer(es graphql.ExecutableSchema) *handler.Server {
+	srv := handler.New(es)
+
+	srv.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: defaultKeepAlivePingIntervalSeconds * time.Second,
+	})
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+
+	srv.SetQueryCache(lru.New[*ast.QueryDocument](defaultQueryCacheSize))
+
+	srv.Use(extension.Introspection{})
+	srv.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New[string](defaultPersistedQuerySize),
+	})
+
+	return srv
 }

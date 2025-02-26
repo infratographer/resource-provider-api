@@ -32,8 +32,10 @@ type Noder interface {
 	IsNode()
 }
 
+var resourceproviderImplementors = []string{"ResourceProvider", "Node"}
+
 // IsNode implements the Node interface check for GQLGen.
-func (n *ResourceProvider) IsNode() {}
+func (*ResourceProvider) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -100,15 +102,12 @@ func (c *Client) noder(ctx context.Context, table string, id gidx.PrefixedID) (N
 		}
 		query := c.ResourceProvider.Query().
 			Where(resourceprovider.ID(uid))
-		query, err := query.CollectFields(ctx, "ResourceProvider")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, resourceproviderImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
 	}
@@ -185,7 +184,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []gidx.PrefixedID
 	case resourceprovider.Table:
 		query := c.ResourceProvider.Query().
 			Where(resourceprovider.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "ResourceProvider")
+		query, err := query.CollectFields(ctx, resourceproviderImplementors...)
 		if err != nil {
 			return nil, err
 		}

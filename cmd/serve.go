@@ -31,8 +31,9 @@ import (
 )
 
 const (
-	defaultListenAddr = ":17608"
-	shutdownTimeout   = 10 * time.Second
+	defaultListenAddr  = ":17608"
+	shutdownTimeout    = 10 * time.Second
+	pidFilePermissions = 0o664
 )
 
 var (
@@ -44,7 +45,7 @@ var (
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the Resource Provider Graph API",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		if pidFileName != "" {
 			if err := writePidFile(pidFileName); err != nil {
 				logger.Error("failed to write pid file", zap.Error(err))
@@ -191,5 +192,5 @@ func writePidFile(pidFile string) error {
 
 	// If we get here, then the pidfile didn't exist,
 	// or the pid in it doesn't belong to the user running this app.
-	return os.WriteFile(pidFile, []byte(strconv.Itoa(os.Getpid())), 0o664) // nolint: gomnd
+	return os.WriteFile(pidFile, []byte(strconv.Itoa(os.Getpid())), pidFilePermissions)
 }

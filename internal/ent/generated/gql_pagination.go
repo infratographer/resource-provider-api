@@ -288,7 +288,9 @@ func (rp *ResourceProviderQuery) Paginate(
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = rp.Clone().Count(ctx); err != nil {
+			c := rp.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -301,11 +303,12 @@ func (rp *ResourceProviderQuery) Paginate(
 	if rp, err = pager.applyCursors(rp, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		rp.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := rp.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := rp.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}

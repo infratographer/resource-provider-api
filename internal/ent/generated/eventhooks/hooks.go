@@ -18,10 +18,13 @@ package eventhooks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent"
+	"github.com/metal-toolbox/iam-runtime-contrib/iamruntime"
+	"github.com/metal-toolbox/iam-runtime/pkg/iam/runtime/authorization"
 	"go.infratographer.com/permissions-api/pkg/permissions"
 	"go.infratographer.com/resource-provider-api/internal/ent/generated"
 	"go.infratographer.com/resource-provider-api/internal/ent/generated/hook"
@@ -36,7 +39,7 @@ func ResourceProviderHooks() []ent.Hook {
 				return hook.ResourceProviderFunc(func(ctx context.Context, m *generated.ResourceProviderMutation) (ent.Value, error) {
 					var err error
 					additionalSubjects := []gidx.PrefixedID{}
-					relationships := []events.AuthRelationshipRelation{}
+					relationships := []*authorization.Relationship{}
 
 					objID, ok := m.ID()
 					if !ok {
@@ -142,10 +145,9 @@ func ResourceProviderHooks() []ent.Hook {
 						}
 					}
 					additionalSubjects = append(additionalSubjects, owner_id)
-
-					relationships = append(relationships, events.AuthRelationshipRelation{
+					relationships = append(relationships, &authorization.Relationship{
 						Relation:  "owner",
-						SubjectID: owner_id,
+						SubjectId: owner_id.String(),
 					})
 
 					if ok {
@@ -181,8 +183,8 @@ func ResourceProviderHooks() []ent.Hook {
 						return retValue, err
 					}
 
-					if len(relationships) != 0 {
-						if err := permissions.CreateAuthRelationships(ctx, "resource-provider", objID, relationships...); err != nil {
+					if len(relationships) != 0 && m.Op().Is(ent.OpCreate) {
+						if err := createAuthRelationships(ctx, "resource-provider", objID, relationships...); err != nil {
 							return nil, fmt.Errorf("relationship request failed with error: %w", err)
 						}
 					}
@@ -202,7 +204,7 @@ func ResourceProviderHooks() []ent.Hook {
 			func(next ent.Mutator) ent.Mutator {
 				return hook.ResourceProviderFunc(func(ctx context.Context, m *generated.ResourceProviderMutation) (ent.Value, error) {
 					additionalSubjects := []gidx.PrefixedID{}
-					relationships := []events.AuthRelationshipRelation{}
+					relationships := []*authorization.Relationship{}
 
 					objID, ok := m.ID()
 					if !ok {
@@ -215,10 +217,9 @@ func ResourceProviderHooks() []ent.Hook {
 					}
 
 					additionalSubjects = append(additionalSubjects, dbObj.OwnerID)
-
-					relationships = append(relationships, events.AuthRelationshipRelation{
+					relationships = append(relationships, &authorization.Relationship{
 						Relation:  "owner",
-						SubjectID: dbObj.OwnerID,
+						SubjectId: dbObj.OwnerID.String(),
 					})
 
 					// we have all the info we need, now complete the mutation before we process the event
@@ -228,7 +229,7 @@ func ResourceProviderHooks() []ent.Hook {
 					}
 
 					if len(relationships) != 0 {
-						if err := permissions.DeleteAuthRelationships(ctx, "resource-provider", objID, relationships...); err != nil {
+						if err := deleteAuthRelationships(ctx, "resource-provider", objID, relationships...); err != nil {
 							return nil, fmt.Errorf("relationship request failed with error: %w", err)
 						}
 					}
@@ -268,4 +269,48 @@ func eventType(op ent.Op) string {
 	default:
 		return "unknown"
 	}
+}
+
+func createAuthRelationships(ctx context.Context, resourceType string, resourceID gidx.PrefixedID, relationships ...*authorization.Relationship) error {
+	request := &authorization.CreateRelationshipsRequest{
+		ResourceId:    resourceID.String(),
+		Relationships: relationships,
+	}
+
+	if _, err := iamruntime.ContextCreateRelationships(ctx, request); err == nil || !errors.Is(err, iamruntime.ErrRuntimeNotFound) {
+		return err
+	}
+
+	eventRelationships := make([]events.AuthRelationshipRelation, len(request.Relationships))
+
+	for i, rel := range request.Relationships {
+		eventRelationships[i] = events.AuthRelationshipRelation{
+			Relation:  rel.Relation,
+			SubjectID: gidx.PrefixedID(rel.SubjectId),
+		}
+	}
+
+	return permissions.CreateAuthRelationships(ctx, resourceType, gidx.PrefixedID(request.ResourceId), eventRelationships...)
+}
+
+func deleteAuthRelationships(ctx context.Context, resourceType string, resourceID gidx.PrefixedID, relationships ...*authorization.Relationship) error {
+	request := &authorization.DeleteRelationshipsRequest{
+		ResourceId:    resourceID.String(),
+		Relationships: relationships,
+	}
+
+	if _, err := iamruntime.ContextDeleteRelationships(ctx, request); err == nil || !errors.Is(err, iamruntime.ErrRuntimeNotFound) {
+		return err
+	}
+
+	eventRelationships := make([]events.AuthRelationshipRelation, len(request.Relationships))
+
+	for i, rel := range request.Relationships {
+		eventRelationships[i] = events.AuthRelationshipRelation{
+			Relation:  rel.Relation,
+			SubjectID: gidx.PrefixedID(rel.SubjectId),
+		}
+	}
+
+	return permissions.DeleteAuthRelationships(ctx, resourceType, gidx.PrefixedID(request.ResourceId), eventRelationships...)
 }

@@ -33,6 +33,9 @@ type CreateResourceProviderInput struct {
 	OwnerID gidx.PrefixedID `json:"ownerID"`
 }
 
+type Mutation struct {
+}
+
 // Information about pagination in a connection.
 // https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
 type PageInfo struct {
@@ -46,9 +49,12 @@ type PageInfo struct {
 	EndCursor *string `json:"endCursor,omitempty"`
 }
 
+type Query struct {
+}
+
 type ResourceOwner struct {
-	ID               gidx.PrefixedID            `json:"id"`
-	ResourceProvider ResourceProviderConnection `json:"resourceProvider"`
+	ID               gidx.PrefixedID             `json:"id"`
+	ResourceProvider *ResourceProviderConnection `json:"resourceProvider"`
 }
 
 func (ResourceOwner) IsEntity() {}
@@ -63,7 +69,7 @@ type ResourceProvider struct {
 	// The description of the resource provider.
 	Description *string `json:"description,omitempty"`
 	// The owner of the resourceProvider.
-	Owner ResourceOwner `json:"owner"`
+	Owner *ResourceOwner `json:"owner"`
 }
 
 func (ResourceProvider) IsNode() {}
@@ -78,7 +84,7 @@ type ResourceProviderConnection struct {
 	// A list of edges.
 	Edges []*ResourceProviderEdge `json:"edges,omitempty"`
 	// Information to aid in pagination.
-	PageInfo PageInfo `json:"pageInfo"`
+	PageInfo *PageInfo `json:"pageInfo"`
 	// Identifies the total count of items in the connection.
 	TotalCount int64 `json:"totalCount"`
 }
@@ -86,7 +92,7 @@ type ResourceProviderConnection struct {
 // Return response from resourceProviderCreate
 type ResourceProviderCreatePayload struct {
 	// The created resource provider.
-	ResourceProvider ResourceProvider `json:"resourceProvider"`
+	ResourceProvider *ResourceProvider `json:"resourceProvider"`
 }
 
 // Return response from resourceProviderDelete
@@ -114,7 +120,7 @@ type ResourceProviderOrder struct {
 // Return response from resourceProviderUpdate
 type ResourceProviderUpdatePayload struct {
 	// The updated resource provider.
-	ResourceProvider ResourceProvider `json:"resourceProvider"`
+	ResourceProvider *ResourceProvider `json:"resourceProvider"`
 }
 
 // ResourceProviderWhereInput is used for filtering ResourceProvider objects.
@@ -222,7 +228,7 @@ func (e OrderDirection) String() string {
 	return string(e)
 }
 
-func (e *OrderDirection) UnmarshalGQL(v interface{}) error {
+func (e *OrderDirection) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -270,7 +276,7 @@ func (e ResourceProviderOrderField) String() string {
 	return string(e)
 }
 
-func (e *ResourceProviderOrderField) UnmarshalGQL(v interface{}) error {
+func (e *ResourceProviderOrderField) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")

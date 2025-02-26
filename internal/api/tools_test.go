@@ -1,6 +1,3 @@
-//go:build testtools
-// +build testtools
-
 package api_test
 
 import (
@@ -12,14 +9,21 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"entgo.io/ent/dialect"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/zap"
 
 	"go.infratographer.com/permissions-api/pkg/permissions"
@@ -125,7 +129,7 @@ func setupDB() {
 		errPanic("failed creating db scema", c.Schema.Create(ctx))
 	case dialect.Postgres:
 		log.Println("Running database migrations")
-		goosex.MigrateUp(uri, db.Migrations)
+		goosex.MigrateUpContext(ctx, uri, db.Migrations)
 	}
 
 	eventhooks.EventHooks(c)
@@ -173,7 +177,7 @@ func withGraphClientHTTPClient(httpcli *http.Client) graphClientOptions {
 func graphTestClient(options ...graphClientOptions) testclient.TestClient {
 	g := &graphClient{
 		srvURL: "graph",
-		httpClient: &http.Client{Transport: localRoundTripper{handler: handler.NewDefaultServer(
+		httpClient: &http.Client{Transport: localRoundTripper{handler: newDefaultServer(
 			api.NewExecutableSchema(
 				api.Config{Resolvers: api.NewResolver(EntClient, zap.NewNop().Sugar())},
 			))}},
@@ -183,7 +187,7 @@ func graphTestClient(options ...graphClientOptions) testclient.TestClient {
 		opt(g)
 	}
 
-	return testclient.NewClient(g.httpClient, g.srvURL)
+	return testclient.NewClient(g.httpClient, g.srvURL, &clientv2.Options{})
 }
 
 // localRoundTripper is an http.RoundTripper that executes HTTP transactions
@@ -282,4 +286,25 @@ func (t *ResourceProviderBuilder) MustNew(ctx context.Context) *ent.ResourceProv
 	resourceProviderCreate.SetOwnerID(t.OwnerID)
 
 	return resourceProviderCreate.SaveX(ctx)
+}
+
+func newDefaultServer(es graphql.ExecutableSchema) *handler.Server {
+	srv := handler.New(es)
+
+	srv.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+
+	srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+
+	srv.Use(extension.Introspection{})
+	srv.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New[string](100),
+	})
+
+	return srv
 }
