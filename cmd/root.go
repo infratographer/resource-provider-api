@@ -57,7 +57,7 @@ func init() {
 	// Setup migrate command
 	goosex.RegisterCobraCommand(rootCmd, func() {
 		goosex.SetBaseFS(dbm.Migrations)
-		goosex.SetDBURI(config.AppConfig.CRDB.URI)
+		goosex.SetDBURI(config.AppConfig.CRDB.GetURI())
 		goosex.SetLogger(logger)
 	})
 }
@@ -93,6 +93,7 @@ func initConfig() {
 		logger.Infow("using config file",
 			"file", viper.ConfigFileUsed(),
 		)
+		setupAppConfig()
 	}
 }
 
