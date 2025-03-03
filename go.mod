@@ -9,7 +9,8 @@ require (
 	entgo.io/ent v0.14.3
 	github.com/99designs/gqlgen v0.17.66
 	github.com/Yamashou/gqlgenc v0.31.0
-	github.com/brianvoe/gofakeit/v6 v6.23.2
+	github.com/brianvoe/gofakeit/v6 v6.28.0
+	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lib/pq v1.10.9
