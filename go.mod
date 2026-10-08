@@ -2,7 +2,7 @@ module go.infratographer.com/resource-provider-api
 
 go 1.23.0
 
-toolchain go1.24.0
+toolchain go1.27.2
 
 require (
 	entgo.io/contrib v0.6.0
