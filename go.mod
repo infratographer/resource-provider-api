@@ -1,6 +1,6 @@
 module go.infratographer.com/resource-provider-api
 
-go 1.23.0
+go 1.24
 
 toolchain go1.24.0
 
@@ -79,7 +79,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jaevor/go-nanoid v1.4.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/echo-contrib v0.17.2 // indirect
 	github.com/labstack/echo-jwt/v4 v4.3.0 // indirect
